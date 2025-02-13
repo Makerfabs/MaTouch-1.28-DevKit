@@ -10,6 +10,9 @@ USB CDC On Boot: Enabled
 Flash size:16MB(128Mb)
 Partition Schrme:16M Flash(3MB APP/9.9MB FATFS)
 PSRAM: OPI PSRAM
+
+Note:
+2025/2/12   添加开关按钮设置
 */
 #include <lvgl.h>
 #include <Arduino_GFX_Library.h>
@@ -34,6 +37,7 @@ int move_flag = 0;
 
 int dimtime = 0;
 int dim_percent = 0;
+bool button_flag = 1;//默认打开
 
 hw_timer_t *dim_timer = NULL;
 hw_timer_t *zero_timer = NULL;
@@ -240,11 +244,13 @@ void set_power(int level)
     if (level == 0)
     {
         RELAY_OFF;
+        //Serial.println("RELAY_OFF");
         return;
     }
     else
     {
         RELAY_ON;
+        //Serial.println("RELAY_ON");
     }
 }
 
@@ -252,13 +258,19 @@ void set_power_percent(int percent)
 {
     dimtime = 100 * map(percent, 0, 100, 95, 5);
 
-    if (percent < 5)
+    if (percent < 1 || button_flag==0)
     {
         RELAY_OFF;
+        //Serial.println("RELAY_OFF");
+        //Serial.print("button_flag");
+        //Serial.println(button_flag);
         return;
     }
     else
     {
         RELAY_ON;
+        //Serial.println("RELAY_ON");
+        //Serial.print("button_flag");
+        //Serial.println(button_flag);
     }
 }

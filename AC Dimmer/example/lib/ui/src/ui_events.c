@@ -3,3 +3,12 @@
 // LVGL version: 8.3.11
 // Project name: SquareLine_Project
 
+#include "ui.h"
+
+extern bool button_flag;
+
+void button_fun(lv_event_t * e)
+{
+	// Your code here
+	button_flag = !button_flag;
+}
