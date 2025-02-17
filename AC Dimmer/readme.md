@@ -18,7 +18,7 @@ Note:
 2025/2/12   添加开关按钮设置
 */
 ```
-## Intruduce
+## Introduce
 
 1.[How to use?](https://wiki.makerfabs.com/Matouch%201.28%20DevKit.html#27-ac-dimmer)
 
