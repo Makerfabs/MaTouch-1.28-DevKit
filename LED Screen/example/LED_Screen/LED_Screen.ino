@@ -1,13 +1,19 @@
 /*
 Library version:
-Arduino IDE 2.3.2
-esp32 V3.0.7
-GFX Library for Arduino v1.4.9
+Arduino IDE 2.3.4
+esp32 V3.1.1
+GFX Library for Arduino v1.5.3
 lvgl v8.3.11
 ESP32 HUB75 LED MATRIX PANEL DMA Display v3.0.11
 Adafruit GFX Library v1.11.11
 Adafruit BusIO v1.16.2
 AnimatedGIF v2.1.1
+
+Tools:
+USB CDC On Boot: Enabled
+Flash size: 16MB(128Mb)
+Partition Schrme: 16M Flash(3MB APP/9.9MB FATFS)
+PSRAM: OPI PSRAM
 */
 
 #include <lvgl.h>
@@ -50,7 +56,7 @@ AnimatedGIF gif;
 File f;
 
 Arduino_ESP32SPI *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, HSPI, true);  // Constructor
-Arduino_GFX *gfx = new Arduino_GC9A01(bus, TFT_RES, 3 /* rotation */, true /* IPS */);
+Arduino_GFX *gfx = new Arduino_GC9A01(bus, TFT_RES,  2 /* rotation */, true /* IPS */);
 
 int counter = 0;
 int State;
@@ -300,8 +306,8 @@ void my_touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
   {
     data->state = LV_INDEV_STATE_PR;
 
-    data->point.x = (uint16_t)(240 - touchY);
-    data->point.y = (uint16_t)touchX;
+    data->point.x = (uint16_t)(240 - touchX);
+    data->point.y = (uint16_t)(240 - touchY);
     //Serial.printf("Touch detected: X = %d, Y = %d\n", data->point.x, data->point.y);
   } else
   {

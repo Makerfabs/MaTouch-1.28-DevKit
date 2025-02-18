@@ -17,7 +17,7 @@ Partition Schrme: 16M Flash(3MB APP/9.9MB FATFS)
 PSRAM: OPI PSRAM
 */
 ```
-## Intruduce
+## Introduce
 
 1.[How to use?](https://wiki.makerfabs.com/Matouch%201.28%20DevKit.html#26-dc-dimmer)
 
