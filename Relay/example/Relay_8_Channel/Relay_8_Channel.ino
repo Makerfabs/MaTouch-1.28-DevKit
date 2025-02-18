@@ -1,12 +1,18 @@
 /*
 Library version:
-Arduino IDE 2.3.2
-esp32 V3.0.7
-GFX Library for Arduino v1.4.9
+Arduino IDE 2.3.4
+esp32 V3.1.1
+GFX Library for Arduino v1.5.3
 lvgl v8.3.11
 RTClib v2.1.4
 Adafruit BusIO v1.16.2
 ESP32Time v2.0.6
+
+Tools:
+USB CDC On Boot: Enabled
+Flash size: 16MB(128Mb)
+Partition Schrme: 16M Flash(3MB APP/9.9MB FATFS)
+PSRAM: OPI PSRAM
 */
 
 #include <lvgl.h>
