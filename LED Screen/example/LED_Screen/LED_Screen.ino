@@ -1,4 +1,9 @@
 /*
+Author: Yuki
+Date:2025.2.19
+Code version: V1.0.1
+Note: SD card add TXT text display function
+
 Library version:
 Arduino IDE 2.3.4
 esp32 V3.1.1
@@ -25,7 +30,6 @@ PSRAM: OPI PSRAM
 #include "pin_config.h"
 #include <SD.h>
 #include "SPI.h"
-
 
 #define MAX_FILES 50
 #define MAX_FILENAME_LENGTH 32
@@ -81,8 +85,8 @@ void setup()
   if (!SD.begin(SD_CS, SPI, 80000000))
     Serial.println(F("ERROR: File System Mount Failed!"));
 
-  listDir(SD, "/", 0);
-  processGIF(fileNames[now_file]);
+  listDir(SD, "/", 0); // Read SD card files
+  processGIF(fileNames[now_file]); // Read the first file
 
   SPI_OFF_SD;
   Serial.println("SD init finish.");
@@ -165,13 +169,13 @@ void Task_Main(void *pvParameters)
   }
 }
 
-void Task_Gif_and_text(void *pvParameters)
+void Task_Gif_and_text(void *pvParameters) // Light panel display
 {
   while(1)
   {
-    dma_display->fillScreen(dma_display->color565(0, 0, 0));
+    dma_display->fillScreen(dma_display->color565(0, 0, 0)); // Fill the display with black
 
-    if(txt_flag==1)
+    if(txt_flag==1) // txt file display
     {
       while(1)
       {
@@ -179,13 +183,13 @@ void Task_Gif_and_text(void *pvParameters)
         if(sd_update_flag == 1){break;}
       }
     }
-    else if(txt_flag==0)
+    else if(txt_flag==0) // gif file display
     {
       for (int j = 0; j < 11; j++)
       {
         if (gif.open((uint8_t *)gifArray, gifArraySize, GIFDraw))
         {
-          while (gif.playFrame(true, NULL))
+          while (gif.playFrame(true, NULL)) // Play all frames of the GIF until playback is complete
           {
             if(sd_update_flag == 1){break;}
           }
@@ -203,7 +207,7 @@ void Task_Gif_and_text(void *pvParameters)
 }
 
 //---------------------------------------------
-void sd_updata()
+void sd_updata() // Read sd card
 {
   switch_to_SD();
   if(isTXTByExtension(fileNames[now_file]))
@@ -221,7 +225,7 @@ void sd_updata()
   sd_update_flag = 0;
 }
 
-void encoder_irq() 
+void encoder_irq() // knob interruption
 {
   State = digitalRead(ENCODER_CLK);
   if (State != old_State)
@@ -232,7 +236,7 @@ void encoder_irq()
       counter--;
 
     if(page_index == 0)
-      sd_update_flag=1; //read sd card
+      sd_update_flag=1; //Reread sd card
 
     Serial.println("Encoder_irq Detection");
   }
@@ -265,20 +269,20 @@ void encoder_func()
       if (brightness > 100)
         brightness = 100;
 
-      dma_display->setBrightness(map(brightness, 0, 100, 0, 255));  // map()函数将亮度值从用户熟悉的百分比（0% 到 100%）映射到硬件亮度范围（0 到 255）
+      dma_display->setBrightness(map(brightness, 0, 100, 0, 255));  // The map() function maps luminance values from a percentage (0% to 100%) to the hardware luminance range (0 to 255)
     }
   }
 }
 
-void obj_update() 
+void obj_update() // ui variable update
 {
   char temp[80] = "";
-  if (page_index == 0)
+  if (page_index == 0) // Update the screen display
   {
     lv_roller_set_selected(ui_Roller1, now_file, LV_ANIM_ON);
   }
 
-  if (page_index == 1)
+  if (page_index == 1) // Update brightness
   {
     lv_arc_set_value(ui_Arc1, brightness);
 
@@ -338,7 +342,7 @@ void my_touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
   }
 }
 
-// Gif function
+// Light panel display initialisation
 void displaySetup() 
 {
   HUB75_I2S_CFG mxconfig(
@@ -517,11 +521,11 @@ void listDir(fs::FS &fs, const char *dirname, uint8_t levels)
   }
 
   File file = root.openNextFile();
-  bool isFirstFile = true;
+  bool isFirstFile = true; // Used to determine if it is the first file
 
   while (file) 
   {
-    if (file.isDirectory())
+    if (file.isDirectory()) //check if the opened file is a directory
     {
       //Serial.print("  DIR : ");
       //Serial.println(file.name());
@@ -530,15 +534,15 @@ void listDir(fs::FS &fs, const char *dirname, uint8_t levels)
     }
     else
     {
-      snprintf(fileNames[file_sum], MAX_FILENAME_LENGTH, "/%s", file.name());
-      fileNames[file_sum][MAX_FILENAME_LENGTH - 1] = '\0';
+      snprintf(fileNames[file_sum], MAX_FILENAME_LENGTH, "/%s", file.name()); // Save filenames to an array
+      fileNames[file_sum][MAX_FILENAME_LENGTH - 1] = '\0';  // Make sure the string ends in '0'
 
-      if (!isFirstFile)
+      if (!isFirstFile) // If it's not the first file, add a newline before it
         strcat(fileNameBuffer, "\n");
       else
         isFirstFile = false;
 
-      strcat(fileNameBuffer, file.name());
+      strcat(fileNameBuffer, file.name()); // Construct the string that defines the Roller options.
       file_sum++;
     }
     file = root.openNextFile();
@@ -546,15 +550,15 @@ void listDir(fs::FS &fs, const char *dirname, uint8_t levels)
 }
 
 
-void my_check()
+void my_check() // Verify sd card read
 {
-  Serial.println("Stored file names:");
+  Serial.println("Stored file names:"); // Print the name of the stored file
   for (int i = 0; i < file_sum; i++) 
   {
     Serial.println(fileNames[i]);
   }
 
-  Serial.println("Files on SD card:");
+  Serial.println("Files on SD card:"); // Print the entire string
   Serial.println(fileNameBuffer);
 }
 
@@ -597,6 +601,7 @@ bool isGIFByHeader(fs::FS &fs, const char* filePath)
   return (strncmp(header, "GIF87a", 6) == 0 || strncmp(header, "GIF89a", 6) == 0);
 }
 
+// Read the contents of a GIF file into a byte array and save it.
 bool saveGIFToArray(fs::FS &fs, const char* gifPath) 
 {
   if (gifArray != nullptr) 
@@ -631,7 +636,8 @@ bool saveGIFToArray(fs::FS &fs, const char* gifPath)
   return true;
 }
 
-void printGIFArray() 
+// Print the contents of the GIF array
+void printGIFArray()
 {
   if (gifArray == nullptr || gifArraySize == 0) 
   {
@@ -646,12 +652,13 @@ void printGIFArray()
     if (i < gifArraySize - 1) 
       Serial.print(", ");
     if ((i + 1) % 16 == 0) 
-      Serial.println();  // 每行 16 个字节
+      Serial.println();  // 16 bytes per line
   }
   Serial.println("};");
   Serial.printf("GIF array size: %d bytes\n", gifArraySize);
 }
 
+// Check the file and save it to an array
 void processGIF(const char* gifPath) 
 {
   if (!isGIFByHeader(SD, gifPath)) 
