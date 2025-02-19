@@ -39,7 +39,8 @@ uint8_t* gifArray = nullptr;
 size_t gifArraySize = 0;
 
 int sd_update_flag = 0;
-
+int txt_flag = 0;
+String txt_content = "";
 /*Change to your screen resolution*/
 static const uint16_t screenWidth = 240;
 static const uint16_t screenHeight = 240;
@@ -123,8 +124,9 @@ void setup()
 
   xTaskCreatePinnedToCore(Task_TFT, "Task_TFT", 4096, NULL, 3, NULL, 0);
   xTaskCreatePinnedToCore(Task_Main, "Task_Main", 10240, NULL, 2, NULL, 0);
+  //display_text("test");
   delay(2500);
-  xTaskCreatePinnedToCore(Task_Gif, "Task_Gif", 10240, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(Task_Gif_and_text, "Task_Gif_and_text", 10240, NULL, 1, NULL, 1);
 
 }
 
@@ -155,46 +157,67 @@ void Task_Main(void *pvParameters)
     }
     else if(sd_update_flag == 1)
     {
-      gif_updata();
-      Serial.print("gif_updata:");
+      sd_updata();
+      Serial.print("sd_updata:");
       Serial.println(fileNames[now_file]);
       vTaskDelay(10);
     }
   }
 }
 
-void Task_Gif(void *pvParameters)
+void Task_Gif_and_text(void *pvParameters)
 {
   while(1)
   {
     dma_display->fillScreen(dma_display->color565(0, 0, 0));
 
-    for (int j = 0; j < 11; j++)
+    if(txt_flag==1)
     {
-      if (gif.open((uint8_t *)gifArray, gifArraySize, GIFDraw))
+      while(1)
       {
-        while (gif.playFrame(true, NULL))
-        {
-          if(sd_update_flag == 1){break;}
-        }
-        gif.close();
-      } 
-      else 
-      {
-        Serial.printf("Error opening file = %d, file name: %s\n", gif.getLastError(), fileNames[now_file]);
-        break;
+        display_text(txt_content);
+        if(sd_update_flag == 1){break;}
       }
     }
-    vTaskDelay(300);
+    else if(txt_flag==0)
+    {
+      for (int j = 0; j < 11; j++)
+      {
+        if (gif.open((uint8_t *)gifArray, gifArraySize, GIFDraw))
+        {
+          while (gif.playFrame(true, NULL))
+          {
+            if(sd_update_flag == 1){break;}
+          }
+          gif.close();
+        } 
+        else 
+        {
+          Serial.printf("Error opening file = %d, file name: %s\n", gif.getLastError(), fileNames[now_file]);
+          break;
+        }
+      }
+    }
+    vTaskDelay(500);
   }
 }
 
 //---------------------------------------------
-void gif_updata()
+void sd_updata()
 {
   switch_to_SD();
-  processGIF(fileNames[now_file]);
-  switch_to_TFT();
+  if(isTXTByExtension(fileNames[now_file]))
+  {
+    txt_flag=1;
+    readTextFromSD(fileNames[now_file]);
+    switch_to_TFT();
+  }
+  else
+  {
+    txt_flag=0;
+    processGIF(fileNames[now_file]);
+    switch_to_TFT();
+  }
   sd_update_flag = 0;
 }
 
@@ -574,7 +597,6 @@ bool isGIFByHeader(fs::FS &fs, const char* filePath)
   return (strncmp(header, "GIF87a", 6) == 0 || strncmp(header, "GIF89a", 6) == 0);
 }
 
-
 bool saveGIFToArray(fs::FS &fs, const char* gifPath) 
 {
   if (gifArray != nullptr) 
@@ -647,4 +669,42 @@ void processGIF(const char* gifPath)
   Serial.printf("GIF %s saved to global array successfully.\n", gifPath);
 }
 
+void display_text(String txt)
+{
+  dma_display->setTextSize(1);     // size 1 == 8 pixels high
+  dma_display->setCursor(5, 30);    // start at (5,30)
+  dma_display->setTextColor(dma_display->color444(15,15,15));
+  dma_display->println(txt);
+}
 
+
+bool isTXTByExtension(const char* filePath)
+{
+    String fname = String(filePath);
+    fname.toLowerCase();
+
+    if (fname.endsWith(".txt")) {
+        Serial.println(String(filePath) + " is a TXT file.");
+        return true;
+    } else {
+        Serial.println(String(filePath) + " is NOT a TXT file.");
+        return false;
+    }
+}
+
+void readTextFromSD(const char *filename)
+{
+    txt_content = "";
+
+    File file = SD.open(filename);
+    if (!file) {
+        Serial.println("Failed to open file!");
+    }
+
+    while (file.available()) {
+        txt_content += (char)file.read();
+    }
+    file.close();
+
+    Serial.println("Text:" + txt_content);
+}
