@@ -1,7 +1,7 @@
 /*
 Author: Yuki
 Date:2025.2.19
-Code version: V1.0.1
+Code version: V1.0.2
 Note: SD card add TXT text display function
 
 Library version:
@@ -30,6 +30,19 @@ PSRAM: OPI PSRAM
 #include "pin_config.h"
 #include <SD.h>
 #include "SPI.h"
+
+
+#include <Arduino.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/event_groups.h>
+
+
+
+EventGroupHandle_t eventGroup;
+#define BIT0  1 << 0
+#define BIT1  1 << 1
+
+EventBits_t bits = BIT1;
 
 #define MAX_FILES 50
 #define MAX_FILENAME_LENGTH 32
@@ -126,11 +139,15 @@ void setup()
   Serial.println("TFT init over");
   Serial.println("Setup done");
 
-  xTaskCreatePinnedToCore(Task_TFT, "Task_TFT", 4096, NULL, 3, NULL, 0);
-  xTaskCreatePinnedToCore(Task_Main, "Task_Main", 10240, NULL, 2, NULL, 0);
+  eventGroup = xEventGroupCreate();  // 创建事件组
+
+  xTaskCreatePinnedToCore(Task_TFT, "Task_TFT", 4096, NULL, 3, NULL, 1);
+  xTaskCreatePinnedToCore(Task_Main, "Task_Main", 10240, NULL, 2, NULL, 1);
   //display_text("test");
   delay(2500);
   xTaskCreatePinnedToCore(Task_Gif_and_text, "Task_Gif_and_text", 10240, NULL, 1, NULL, 1);
+  EventBits_t currentBits = xEventGroupClearBits(eventGroup, BIT0 | BIT1);
+  xEventGroupSetBits(eventGroup, BIT1);  // 设置事件位 BIT0
 
 }
 
@@ -151,7 +168,7 @@ void Task_Main(void *pvParameters)
 {
   while (1) 
   {
-    encoder_func();
+    // encoder_func();
     if(sd_update_flag == 0)
     {
       obj_update();
@@ -173,56 +190,72 @@ void Task_Gif_and_text(void *pvParameters) // Light panel display
 {
   while(1)
   {
+
+    bits = xEventGroupWaitBits(eventGroup, BIT0 | BIT1, pdFALSE, pdFALSE, 0);  
+
     dma_display->fillScreen(dma_display->color565(0, 0, 0)); // Fill the display with black
 
-    if(txt_flag==1) // txt file display
+    if(bits & BIT0) // txt file display
     {
-      while(1)
-      {
+    //   while(1)
+    //   {
         display_text(txt_content);
-        if(sd_update_flag == 1){break;}
-      }
+        // if(sd_update_flag == 1)
+        // {
+        //     break;
+        // }
+    //   }
     }
-    else if(txt_flag==0) // gif file display
+    else if(bits & BIT1) // gif file display
     {
-      for (int j = 0; j < 11; j++)
-      {
-        if (gif.open((uint8_t *)gifArray, gifArraySize, GIFDraw))
+        for (int j = 0; j < 11; j++)
         {
-          while (gif.playFrame(true, NULL)) // Play all frames of the GIF until playback is complete
-          {
-            if(sd_update_flag == 1){break;}
-          }
-          gif.close();
-        } 
-        else 
-        {
-          Serial.printf("Error opening file = %d, file name: %s\n", gif.getLastError(), fileNames[now_file]);
-          break;
+            if (gif.open((uint8_t *)gifArray, gifArraySize, GIFDraw))
+            {
+                while (gif.playFrame(true, NULL)) // Play all frames of the GIF until playback is complete
+                {
+                    if(sd_update_flag == 1)
+                    {
+                        break;
+                    }
+                }
+                gif.close();            
+                
+            } 
+            else 
+            {
+                Serial.printf("Error opening file = %d, file name: %s\n", gif.getLastError(), fileNames[now_file]);
+                break;
+            }
         }
-      }
     }
     vTaskDelay(500);
+
   }
 }
 
 //---------------------------------------------
 void sd_updata() // Read sd card
 {
+
   switch_to_SD();
   if(isTXTByExtension(fileNames[now_file]))
   {
-    txt_flag=1;
+    // txt_flag=1;
+    EventBits_t currentBits = xEventGroupClearBits(eventGroup, BIT0 | BIT1);
+    xEventGroupSetBits(eventGroup, BIT0);  // 设置事件位 BIT0
     readTextFromSD(fileNames[now_file]);
     switch_to_TFT();
   }
   else
   {
-    txt_flag=0;
+    // txt_flag=0;
+    EventBits_t currentBits = xEventGroupClearBits(eventGroup, BIT0 | BIT1);
+    xEventGroupSetBits(eventGroup, BIT1);  // 设置事件位 BIT0
     processGIF(fileNames[now_file]);
     switch_to_TFT();
   }
-  sd_update_flag = 0;
+  sd_update_flag = 0;    
 }
 
 void encoder_irq() // knob interruption
@@ -235,8 +268,9 @@ void encoder_irq() // knob interruption
     else 
       counter--;
 
+    encoder_func();
     if(page_index == 0)
-      sd_update_flag=1; //Reread sd card
+      sd_update_flag=1; //Reread sd card    
 
     Serial.println("Encoder_irq Detection");
   }
