@@ -1,8 +1,7 @@
 /*
-Author: Yuki
-Date:2025.2.19
-Code version: V1.0.2
-Note: SD card add TXT text display function
+Author: Copper
+Date:2025.2.20
+Code version: V1.0.3
 
 Library version:
 Arduino IDE 2.3.4
