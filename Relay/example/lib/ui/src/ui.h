@@ -80,6 +80,12 @@ extern lv_obj_t * ui_Button9;
 extern lv_obj_t * ui_Label26;
 // CUSTOM VARIABLES
 
+// SCREEN: ui_Screen4
+void ui_Screen4_screen_init(void);
+void ui_event_Screen4(lv_event_t * e);
+extern lv_obj_t * ui_Screen4;
+extern lv_obj_t * ui_Image1;
+
 // EVENTS
 
 extern lv_obj_t * ui____initial_actions0;
@@ -89,6 +95,7 @@ LV_IMG_DECLARE(ui_img_7_png);    // assets/7.png
 LV_IMG_DECLARE(ui_img_8_png);    // assets/8.png
 LV_IMG_DECLARE(ui_img_9_png);    // assets/9.png
 LV_IMG_DECLARE(ui_img_home_png);    // assets/home.png
+LV_IMG_DECLARE(ui_img_logo_png);
 
 // UI INIT
 void ui_init(void);
