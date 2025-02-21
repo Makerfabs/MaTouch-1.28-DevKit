@@ -11,8 +11,6 @@ extern int page_index;
 
 extern int relay_flag;
 extern int relay_state;
-extern int all_open_flag;
-extern int all_close_flag;
 
 extern int alarm_set_flag;
 extern int alarm_load_flag;
@@ -20,59 +18,47 @@ extern int alarm_reset_flag;
 extern int alarm_store_flag;
 
 
-void time_shift(lv_event_t *e)
+void time_shift(lv_event_t *e) //时分秒转换按键shift
 {
 	// Your code here
 	time_shift_index++;
 	time_shift_index %= 3;
 }
 
-void set_time(lv_event_t *e)
+void set_time(lv_event_t *e) //确定时间，跳转到控制开关页面
 {
 	// Your code here
 	rtc_set_flag = 1;
 	page_index = 1;
 }
 
-void set_relay(lv_event_t *e)
+void set_relay(lv_event_t *e) //设置时间按键，跳转到设置定时时间页面
 {
 	// Your code here
 	page_index = 2;
 	alarm_load_flag = 1;
 }
 
-void all_close(lv_event_t *e)
-{
-	// Your code here
-	all_close_flag = 1;
-}
-
-void all_open(lv_event_t *e)
-{
-	// Your code here
-	all_open_flag = 1;
-}
-
-void relay_switch(lv_event_t *e)
+void relay_switch(lv_event_t *e) //继电器开关按键
 {
 	// Your code here
 	relay_state = lv_obj_has_state(ui_Switch1, LV_STATE_CHECKED);
 	relay_flag = 1;
 }
 
-void set_alarm(lv_event_t *e)
+void set_alarm(lv_event_t *e) //时间设置完毕，跳转下一个页面，SET按键
 {
 	// Your code here
 	alarm_set_flag = 1;
 }
 
-void reset_alarm(lv_event_t *e)
+void reset_alarm(lv_event_t *e) //清空时间按键
 {
 	// Your code here
 	alarm_reset_flag = 1;
 }
 
-void leave_set_relay(lv_event_t *e)
+void leave_set_relay(lv_event_t *e) //时间设置完毕，返回控制开关页面
 {
 	// Your code here
 	page_index = 1;

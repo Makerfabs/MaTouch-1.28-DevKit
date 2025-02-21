@@ -7,6 +7,7 @@ SET(SOURCES screens/ui_Screen1.c
     ui_events.c
     images/ui_img_7_png.c
     images/ui_img_8_png.c
-    images/ui_img_9_png.c)
+    images/ui_img_9_png.c
+    images/ui_img_home_png.c)
 
 add_library(ui ${SOURCES})

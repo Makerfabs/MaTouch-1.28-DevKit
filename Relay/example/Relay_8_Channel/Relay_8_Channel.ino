@@ -1,4 +1,8 @@
 /*
+Author: Yuki
+Date:2025.2.21
+Code version: V1.0.2
+
 Library version:
 Arduino IDE 2.3.4
 esp32 V3.1.1
@@ -20,6 +24,7 @@ PSRAM: OPI PSRAM
 #include <ui.h>
 #include <RTClib.h>
 #include <ESP32Time.h>
+
 #include "touch.h"
 #include "pin_config.h"
 #include "local_store.h"
@@ -43,7 +48,7 @@ int old_State;
 int move_flag = 0;
 
 // Global
-int time_shift_index = 0;
+int time_shift_index = 0; // hour,min,sec              sequential
 int rtc_set_flag = 0;
 int page_index = 0;
 
@@ -52,15 +57,13 @@ int alarm_reset_flag = 0;
 int alarm_load_flag = 0;
 int alarm_store_flag = 0;
 
-int all_open_flag = 0;
-int all_close_flag = 0;
-int relay_flag = 0;
-int relay_state = 0;
+int relay_flag = 0;     // Switch Single Control       flag
+int relay_state = 0;    // Switching state             transmit a value
 
 // Local
-int relay_inedx = 0;
-int relay_status[8] = {0};
-int alarm_index = 0;
+int relay_inedx = 0;       // Relay Number
+int relay_status[8] = {0}; // Relay status
+int alarm_index = 0;       // Alarm Clock Number
 int alarm_status = 0;
 
 typedef struct My_time
@@ -74,6 +77,7 @@ My_time t_set = {0, 0, 0};
 My_time t_clock = {0, 0, 0};
 My_time t_alarm = {0, 0, 0};
 
+//8 relays, 10 sets of clocks, 6 hours, minutes, seconds + 1 end symbol '/0'
 char alarm_data[8][10][7];
 
 int relay_pin[8]{
@@ -93,13 +97,13 @@ void setup()
 
     pin_init();
     for (int i = 0; i < 8; i++)
-        set_relay(i, 0); //Setting the relay switches, set all 8 to 0
+        set_relay(i, 0); //Set the relay switches to set all 8 to 0;
 
     Wire.begin(TOUCH_SDA, TOUCH_SCL);
 
     rtc_pcf_init();
 
-    alarm_data_init(); //Alarm clock initialisation, read flash data, flash with data will be assigned value, no data will be set to ---.
+    alarm_data_init(); // Alarm clock initialisation, read flash data, flash with data will be assigned value, no data will be set to ---.
     alarm_data_print();
 
     gfx->begin();
@@ -143,7 +147,7 @@ void loop()
     delay(5);
 }
 
-void Task_TFT(void *pvParameters)
+void Task_TFT(void *pvParameters) // screen refresh
 {
     while (1)
     {
@@ -152,10 +156,11 @@ void Task_TFT(void *pvParameters)
     }
 }
 
-void Task_main(void *pvParameters)
+void Task_main(void *pvParameters) // Relay and alarm settings
 {
     while (1)
     {
+        // screen 1 Sets the time of the RTC.
         if (rtc_set_flag == 1)
         {
             rtc_reset();
@@ -164,20 +169,28 @@ void Task_main(void *pvParameters)
             time_shift_index = 0;
         }
 
-        relay_event();
-        alarm_event();
+        relay_event(); // Relay control
+        alarm_event(); // Alarm reset, load, save
+
+        // Encoder function
         encoder_func();
+
+        // UI State Refresh
         obj_update();
+
         vTaskDelay(100);
     }
 }
 
+ // Determine whether the alarm clock and the current time match, match the corresponding switch relays
 void Task_time(void *pvParameters)
 {
     while (1)
     {
+
         DateTime now = rtc_pcf.now();
 
+        // Update real time
         t_clock.hou = now.hour();
         t_clock.min = now.minute();
         t_clock.sec = now.second();
@@ -189,7 +202,7 @@ void Task_time(void *pvParameters)
         {
             for (int j = 0; j < 10; j++)
             {
-                if (alarm_check(i, j, now_time))
+                if (alarm_check(i, j, now_time)) //Determine whether the alarm clock and the current time match
                 {
                     Serial.println("Alarm detect");
                     if (j % 2 == 0)
@@ -199,41 +212,20 @@ void Task_time(void *pvParameters)
                 }
             }
         }
+
         vTaskDelay(500);
     }
 }
 
 void relay_event()
 {
-    // All-On-Off logic
-    if (all_open_flag == 1)
-    {
-        for (int i = 0; i < 8; i++)
-        {
-            set_relay(i, 1);
-        }
-
-        all_open_flag = 0;
-    }
-    if (all_close_flag == 1)
-    {
-        for (int i = 0; i < 8; i++)
-        {
-            set_relay(i, 0);
-        }
-        all_close_flag = 0;
-    }
-
-    // Relay Single Control
     if (relay_flag == 1)
     {
         set_relay(relay_inedx, relay_state);
-
         relay_flag = 0;
     }
 }
 
-// Alarm reset, load, save
 void alarm_event()
 {
     if (alarm_reset_flag == 1)
@@ -241,6 +233,7 @@ void alarm_event()
         alarm_data_reset(relay_inedx);
         alarm_index = 0;
         alarm_load_flag = 1;
+
         alarm_reset_flag = 0;
     }
 
@@ -249,6 +242,7 @@ void alarm_event()
         if (alarm_data[relay_inedx][alarm_index][0] == '-')
         {
             alarm_status = 0;
+
             t_alarm.hou = 0;
             t_alarm.min = 0;
             t_alarm.sec = 0;
@@ -281,6 +275,7 @@ void alarm_event()
 
         alarm_load_flag = 1;
         time_shift_index = 0;
+
         alarm_set_flag = 0;
     }
 
@@ -290,11 +285,13 @@ void alarm_event()
         alarm_data_restore(relay_inedx);
 
         alarm_index = 0;
+
         alarm_store_flag = 0;
     }
 }
 
 //---------------------------------------------
+
 void pin_init()
 {
     pinMode(TFT_BLK, OUTPUT);
@@ -312,6 +309,7 @@ void pin_init()
         pinMode(relay_pin[i], OUTPUT);
         digitalWrite(relay_pin[i], 0);
     }
+        
 }
 
 void encoder_irq()
@@ -365,6 +363,7 @@ void my_touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
 }
 
 // UI
+
 void obj_update()
 {
     char temp[40];
@@ -442,11 +441,11 @@ void obj_update()
     {
         if (alarm_index % 2 == 0)
         {
-            sprintf(temp, "Relay%d Open%d", relay_inedx + 1, alarm_index / 2 + 1);
+            sprintf(temp, "Relay%d Open #%d", relay_inedx + 1, alarm_index / 2 + 1);
         }
         else
         {
-            sprintf(temp, "Relay%d Close%d", relay_inedx + 1, alarm_index / 2 + 1);
+            sprintf(temp, "Relay%d Close #%d", relay_inedx + 1, alarm_index / 2 + 1);
         }
 
         lv_label_set_text(ui_Label22, temp);
@@ -502,7 +501,6 @@ void encoder_func()
     }
 }
 
-
 void rtc_pcf_init()
 {
     if (!rtc_pcf.begin())
@@ -551,7 +549,7 @@ void rtc_reset()
 // encouder
 void encoder_set_time(My_time *my_t)
 {
-    if (time_shift_index == 0)
+    if (time_shift_index == 0) //hour
     {
         my_t->hou += counter;
         if (my_t->hou > 23)
@@ -559,7 +557,7 @@ void encoder_set_time(My_time *my_t)
         if (my_t->hou < 0)
             my_t->hou = 0;
     }
-    else if (time_shift_index == 1)
+    else if (time_shift_index == 1) //min
     {
         my_t->min += counter;
         if (my_t->min > 59)
@@ -567,7 +565,7 @@ void encoder_set_time(My_time *my_t)
         if (my_t->min < 0)
             my_t->min = 0;
     }
-    else if (time_shift_index == 2)
+    else if (time_shift_index == 2) //sec
     {
         my_t->sec += counter;
         if (my_t->sec > 59)
@@ -575,6 +573,7 @@ void encoder_set_time(My_time *my_t)
         if (my_t->sec < 0)
             my_t->sec = 0;
     }
+
     counter = 0;
 }
 
@@ -594,7 +593,6 @@ void encoder_set_arc(lv_obj_t *arc, int *value)
     lv_obj_invalidate(arc);
 }
 
-// Relay control
 void set_relay(int num, int status)
 {
     char temp[30];
@@ -613,7 +611,7 @@ void alarm_data_init()
 {
     const char *init_string = "------";
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; i++) //8 channels
     {
         char key_name[10];
         char nvs_data[80];
@@ -626,20 +624,30 @@ void alarm_data_init()
 
             for (int j = 0; j < 10; j++) //10 alarm clocks
             {
-                for (int k = 0; k < 6; k++) //hour, minute and second data
+                for (int k = 0; k < 6; k++) //6 characters (hour, minute and second data)
                 {
-                    alarm_data[i][j][k] = nvs_data[j * 6 + k];
+                    alarm_data[i][j][k] = nvs_data[j * 6 + k]; //Assign the read characters one by one to the alarm clock data
                 }
-                alarm_data[i][j][6] = '\0';
+                alarm_data[i][j][6] = '\0';//string terminator
             }
         }
         else
         {
             Serial.println("Read NVS ERROR");
-            alarm_data_reset(i);
+            alarm_data_reset(i);//No data read. Reset to ‘------’.
             alarm_data_restore(i);
         }
     }
+
+    // 应该是从NVS读的
+    // const char *init_string = "------";
+    // for (int i = 0; i < 8; i++)
+    // {
+    //     for (int j = 0; j < 10; j++)
+    //     {
+    //         strcpy(alarm_data[i][j], init_string);
+    //     }
+    // }
 }
 
 void alarm_data_update(int relay_num, int index, char *time)
@@ -669,11 +677,11 @@ int alarm_check(int relay_num, int index, char *time)
 
 void alarm_data_print()
 {
-    for (int i = 0; i < 8; i++) //8 relays
+    for (int i = 0; i < 8; i++)
     {
         Serial.printf("Relay %d\n", i);
 
-        for (int j = 0; j < 10; j++) //Iterate through the current relay's 10 alarm clock data
+        for (int j = 0; j < 10; j++)
         {
             Serial.printf(alarm_data[i][j]);
             Serial.printf(",");
@@ -701,5 +709,6 @@ void alarm_data_restore(int relay_num)
 
     char key_name[10];
     sprintf(key_name, "DATA_%d", relay_num);
+
     write_nvs(key_name, nvs_data);
 }
