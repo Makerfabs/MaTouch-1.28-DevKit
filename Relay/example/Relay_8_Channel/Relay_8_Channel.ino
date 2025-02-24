@@ -1,7 +1,7 @@
 /*
-Author: Yuki
+Author: copper
 Date:2025.2.21
-Code version: V1.0.2
+Code version: V1.0.3
 
 Library version:
 Arduino IDE 2.3.4
