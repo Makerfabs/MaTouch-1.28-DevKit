@@ -1,9 +1,19 @@
 /*
+Author: Yuki
+Date:2025.2.25
+Code version: V1.0.2
+
 Library version:
-Arduino IDE 2.3.2
-esp32 V3.0.7
-GFX Library for Arduino v1.4.9
+Arduino IDE 2.3.4
+esp32 V3.1.1
+GFX Library for Arduino v1.5.4
 lvgl v8.3.11
+
+Tools:
+USB CDC On Boot: Enabled
+Flash size: 16MB(128Mb)
+Partition Schrme: 16M Flash(3MB APP/9.9MB FATFS)
+PSRAM: OPI PSRAM
 */
 
 #include <lvgl.h>
@@ -416,9 +426,9 @@ void obj_update()
                 lv_obj_add_state(ui_Switch1, LV_STATE_CHECKED);
         }
 
-        sprintf(temp, "X: %d rpm", rpm_x);
+        sprintf(temp, "X: %d %%", rpm_x);
         lv_label_set_text(ui_Label9, temp);
-        sprintf(temp, "Y: %d rpm", rpm_y);
+        sprintf(temp, "Y: %d %%", rpm_y);
         lv_label_set_text(ui_Label12, temp);
 
         return;
