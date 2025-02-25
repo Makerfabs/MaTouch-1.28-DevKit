@@ -43,21 +43,21 @@ Arduino_GFX *gfx = new Arduino_ILI9341(bus, DF_GFX_RST, 0 /* rotation */, false 
 
 void setup(void)
 {
+#ifdef DEV_DEVICE_INIT
+  DEV_DEVICE_INIT();
+#endif
+
   Serial.begin(115200);
   // Serial.setDebugOutput(true);
   // while(!Serial);
   Serial.println("Arduino_GFX U8g2 Font Hello World example");
-
-#ifdef GFX_EXTRA_PRE_INIT
-  GFX_EXTRA_PRE_INIT();
-#endif
 
   // Init Display
   if (!gfx->begin())
   {
     Serial.println("gfx->begin() failed!");
   }
-  gfx->fillScreen(BLACK);
+  gfx->fillScreen(RGB565_BLACK);
 
 #ifdef GFX_BL
   pinMode(GFX_BL, OUTPUT);
@@ -67,7 +67,7 @@ void setup(void)
   gfx->setCursor(10, 40);
   /* U8g2 font list: https://github.com/olikraus/u8g2/wiki/fntlistall */
   gfx->setFont(u8g2_font_maniac_tr);
-  gfx->setTextColor(RED);
+  gfx->setTextColor(RGB565_RED);
   gfx->println("Hello World!");
 
   delay(5000); // 5 seconds

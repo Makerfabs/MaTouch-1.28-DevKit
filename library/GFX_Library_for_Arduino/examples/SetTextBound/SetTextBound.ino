@@ -40,33 +40,33 @@ Arduino_GFX *gfx = new Arduino_ILI9341(bus, DF_GFX_RST, 0 /* rotation */, false 
 
 void setup(void)
 {
+#ifdef DEV_DEVICE_INIT
+  DEV_DEVICE_INIT();
+#endif
+
   Serial.begin(115200);
   // Serial.setDebugOutput(true);
   // while(!Serial);
   Serial.println("Arduino_GFX Set Text Bound example");
-
-#ifdef GFX_EXTRA_PRE_INIT
-  GFX_EXTRA_PRE_INIT();
-#endif
 
   // Init Display
   if (!gfx->begin())
   {
     Serial.println("gfx->begin() failed!");
   }
-  gfx->fillScreen(BLACK);
+  gfx->fillScreen(RGB565_BLACK);
 
 #ifdef GFX_BL
   pinMode(GFX_BL, OUTPUT);
   digitalWrite(GFX_BL, HIGH);
 #endif
 
-  gfx->drawRect(16, 16, 120, 90, WHITE);
+  gfx->drawRect(16, 16, 120, 90, RGB565_WHITE);
   gfx->setTextBound(18, 18, 116, 86);
   // gfx->setTextWrap(false);
   // gfx->setTextSize(3, 3, 1);
   gfx->setCursor(30, 18);
-  gfx->setTextColor(WHITE);
+  gfx->setTextColor(RGB565_WHITE);
   gfx->println("Arduino has over the years released over 100 hardware products: boards, shields, carriers, kits and other accessories. In this page, you will find an overview of all active Arduino hardware, including the Nano, MKR and Classic families.");
 
   delay(5000); // 5 seconds
@@ -74,7 +74,7 @@ void setup(void)
 
 void loop()
 {
-  gfx->fillRect(18, 18, 116, 86, BLACK);
+  gfx->fillRect(18, 18, 116, 86, RGB565_BLACK);
   gfx->setCursor(30, 18);
   gfx->setTextColor(random(0xffff), random(0xffff));
   gfx->setTextSize(random(6) /* x scale */, random(6) /* y scale */, random(2) /* pixel_margin */);

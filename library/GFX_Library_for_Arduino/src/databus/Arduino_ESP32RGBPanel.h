@@ -1,14 +1,34 @@
 #pragma once
 
+// ESP_LCD_Panel implementation for esp32s3.
+
+// This panel implementation requires a hardware setup with
+//  * RGB LCD peripheral supported (esps3 for now)
+//  * Octal PSRAM onboard
+//  * RGB panel, 16 bit-width, with HSYNC, VSYNC and DE signal
+//
+// It uses a Single Frame Buffer in PSRAM
+//
+// See: (ESP32 board version 3.x)
+// * https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-reference/peripherals/lcd/rgb_lcd.html
+// * https://github.com/espressif/esp-idf/blob/master/examples/peripherals/lcd/rgb_panel/README.md
+//
+// The prior implementation (ESP32 board version 2.x) was largely undocumented.
+
 #include "Arduino_DataBus.h"
 
 #if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3)
-#if (!defined(ESP_ARDUINO_VERSION_MAJOR)) || (ESP_ARDUINO_VERSION_MAJOR < 3)
 
-#include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_rgb.h"
-#include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
+
+#include "esp32s3/rom/cache.h"
+// This function is located in ROM (also see esp_rom/${target}/ld/${target}.rom.ld)
+extern int Cache_WriteBack_Addr(uint32_t addr, uint32_t size);
+
+#if (!defined(ESP_ARDUINO_VERSION_MAJOR)) || (ESP_ARDUINO_VERSION_MAJOR < 3)
+#include "esp_lcd_panel_io.h"
+#include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_interface.h"
 #include "esp_private/gdma.h"
 #include "esp_pm.h"
@@ -16,10 +36,6 @@
 
 #include "hal/lcd_hal.h"
 #include "hal/lcd_ll.h"
-
-#include "esp32s3/rom/cache.h"
-// This function is located in ROM (also see esp_rom/${target}/ld/${target}.rom.ld)
-extern int Cache_WriteBack_Addr(uint32_t addr, uint32_t size);
 
 // extract from esp-idf esp_lcd_rgb_panel.c
 struct esp_rgb_panel_t
@@ -52,6 +68,7 @@ struct esp_rgb_panel_t
   } flags;
   dma_descriptor_t dma_nodes[]; // DMA descriptor pool of size `num_dma_nodes`
 };
+#endif // #if (!defined(ESP_ARDUINO_VERSION_MAJOR)) || (ESP_ARDUINO_VERSION_MAJOR < 3)
 
 class Arduino_ESP32RGBPanel
 {
@@ -67,6 +84,10 @@ public:
       uint16_t de_idle_high = 0, uint16_t pclk_idle_high = 0);
 
   bool begin(int32_t speed = GFX_NOT_DEFINED);
+
+  bool isUseBigEndian() {
+    return _useBigEndian;
+  }
 
   uint16_t *getFrameBuffer(int16_t w, int16_t h);
 
@@ -92,8 +113,6 @@ private:
   uint16_t _pclk_idle_high;
 
   esp_lcd_panel_handle_t _panel_handle = NULL;
-  esp_rgb_panel_t *_rgb_panel;
 };
 
-#endif // #if (!defined(ESP_ARDUINO_VERSION_MAJOR)) || (ESP_ARDUINO_VERSION_MAJOR < 3)
 #endif // #if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3)

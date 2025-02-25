@@ -1,7 +1,6 @@
 #include "../Arduino_DataBus.h"
 
 #if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3)
-#if (!defined(ESP_ARDUINO_VERSION_MAJOR)) || (ESP_ARDUINO_VERSION_MAJOR < 3)
 
 #include "../Arduino_GFX.h"
 #include "Arduino_RGB_Display.h"
@@ -397,16 +396,16 @@ void Arduino_RGB_Display::draw16bitRGBBitmap(int16_t x, int16_t y,
   switch (_rotation)
   {
   case 1:
-    result = gfx_draw_bitmap_to_framebuffer_rotate_1(bitmap, w, h, _framebuffer, x, y, _fb_width, _height + ROW_OFFSET1);
+    result = gfx_draw_bitmap_to_framebuffer_rotate_1(bitmap, w, h, _framebuffer, x, y, _fb_height, _fb_width);
     break;
   case 2:
-    result = gfx_draw_bitmap_to_framebuffer_rotate_2(bitmap, w, h, _framebuffer, x, y, _fb_width, _height + ROW_OFFSET1);
+    result = gfx_draw_bitmap_to_framebuffer_rotate_2(bitmap, w, h, _framebuffer, x, y, _fb_width, _fb_height);
     break;
   case 3:
-    result = gfx_draw_bitmap_to_framebuffer_rotate_3(bitmap, w, h, _framebuffer, x, y, _fb_width, _height + ROW_OFFSET1);
+    result = gfx_draw_bitmap_to_framebuffer_rotate_3(bitmap, w, h, _framebuffer, x, y, _fb_height, _fb_width);
     break;
   default: // case 0:
-    result = gfx_draw_bitmap_to_framebuffer(bitmap, w, h, _framebuffer, x, y, _fb_width, _height + ROW_OFFSET1);
+    result = gfx_draw_bitmap_to_framebuffer(bitmap, w, h, _framebuffer, x, y, _fb_width, _fb_height);
   }
 
   if (result)
@@ -506,9 +505,65 @@ void Arduino_RGB_Display::draw16bitBeRGBBitmap(int16_t x, int16_t y,
   }
 }
 
-void Arduino_RGB_Display::flush(void)
+void Arduino_RGB_Display::drawYCbCrBitmap(int16_t x, int16_t y, uint8_t *yData, uint8_t *cbData, uint8_t *crData, int16_t w, int16_t h)
 {
-  if (!_auto_flush)
+  if (
+      ((x + w - 1) < 0) || // Outside left
+      ((y + h - 1) < 0) || // Outside top
+      (x > _max_x) ||      // Outside right
+      (y > _max_y)         // Outside bottom
+  )
+  {
+    return;
+  }
+  else
+  {
+    int cols = w >> 1;
+    int rows = h >> 1;
+
+    uint16_t *dest = _framebuffer;
+    dest += y * _fb_width;
+    uint16_t *cachePos = dest;
+    dest += x;
+    uint16_t *dest2 = dest + _fb_width;
+    uint8_t *yData2 = yData + w;
+
+    uint8_t pxCb, pxCr;
+    int16_t pxR, pxG, pxB, pxY;
+
+    for (int row = 0; row < rows; ++row)
+    {
+      for (int col = 0; col < w;)
+      {
+        pxCb = *cbData++;
+        pxCr = *crData++;
+        pxR = CR2R16[pxCr];
+        pxG = -CB2G16[pxCb] - CR2G16[pxCr];
+        pxB = CB2B16[pxCb];
+        pxY = Y2I16[*yData++];
+        dest[col] = CLIPR[pxY + pxR] | CLIPG[pxY + pxG] | CLIPB[pxY + pxB];
+        pxY = Y2I16[*yData2++];
+        dest2[col++] = CLIPR[pxY + pxR] | CLIPG[pxY + pxG] | CLIPB[pxY + pxB];
+        pxY = Y2I16[*yData++];
+        dest[col] = CLIPR[pxY + pxR] | CLIPG[pxY + pxG] | CLIPB[pxY + pxB];
+        pxY = Y2I16[*yData2++];
+        dest2[col++] = CLIPR[pxY + pxR] | CLIPG[pxY + pxG] | CLIPB[pxY + pxB];
+      }
+      yData += w;
+      yData2 += w;
+      dest = dest2 + _fb_width;
+      dest2 = dest + _fb_width;
+    }
+    if (_auto_flush)
+    {
+      Cache_WriteBack_Addr((uint32_t)cachePos, _fb_width * h * 2);
+    }
+  }
+}
+
+void Arduino_RGB_Display::flush(bool force_flush)
+{
+  if (force_flush || (!_auto_flush))
   {
     Cache_WriteBack_Addr((uint32_t)_framebuffer, _framebuffer_size);
   }
@@ -519,5 +574,4 @@ uint16_t *Arduino_RGB_Display::getFramebuffer()
   return _framebuffer;
 }
 
-#endif // #if (!defined(ESP_ARDUINO_VERSION_MAJOR)) || (ESP_ARDUINO_VERSION_MAJOR < 3)
 #endif // #if defined(ESP32) && (CONFIG_IDF_TARGET_ESP32S3)

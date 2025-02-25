@@ -73,7 +73,7 @@ Arduino_GFX *gfx = new Arduino_ILI9341(bus, DF_GFX_RST, 3 /* rotation */, false 
 #if defined(ARDUINO_ARCH_SAMD) && defined(SEEED_GROVE_UI_WIRELESS)
 #include <Seeed_FS.h>
 #include <SD/Seeed_SD.h>
-#elif defined(TARGET_RP2040)
+#elif defined(TARGET_RP2040) || defined(PICO_RP2350)
 #include <LittleFS.h>
 #include <SD.h>
 #elif defined(ESP32)
@@ -145,21 +145,21 @@ void TIFFDraw(TIFFDRAW *pDraw)
 
 void setup()
 {
+#ifdef DEV_DEVICE_INIT
+  DEV_DEVICE_INIT();
+#endif
+
   Serial.begin(115200);
   // Serial.setDebugOutput(true);
   // while(!Serial);
   Serial.println("Arduino_GFX TIFF Image Viewer example");
-
-#ifdef GFX_EXTRA_PRE_INIT
-  GFX_EXTRA_PRE_INIT();
-#endif
 
   // Init Display
   if (!gfx->begin())
   {
     Serial.println("gfx->begin() failed!");
   }
-  gfx->fillScreen(BLACK);
+  gfx->fillScreen(RGB565_BLACK);
 
 #ifdef GFX_BL
   pinMode(GFX_BL, OUTPUT);
@@ -172,7 +172,7 @@ void setup()
 /* Wio Terminal */
 #if defined(ARDUINO_ARCH_SAMD) && defined(SEEED_GROVE_UI_WIRELESS)
   if (!SD.begin(SDCARD_SS_PIN, SDCARD_SPI, 4000000UL))
-#elif defined(TARGET_RP2040)
+#elif defined(TARGET_RP2040) || defined(PICO_RP2350)
   if (!LittleFS.begin())
   // if (!SD.begin(SS))
 #elif defined(ESP32)
@@ -202,7 +202,7 @@ void setup()
     /* Wio Terminal */
 #if defined(ARDUINO_ARCH_SAMD) && defined(SEEED_GROVE_UI_WIRELESS)
     File tiffFile = SD.open(TIFF_FILENAME, "r");
-#elif defined(TARGET_RP2040)
+#elif defined(TARGET_RP2040) || defined(PICO_RP2350)
     File tiffFile = LittleFS.open(TIFF_FILENAME, "r");
     // File tiffFile = SD.open(TIFF_FILENAME, "r");
 #elif defined(ESP32)

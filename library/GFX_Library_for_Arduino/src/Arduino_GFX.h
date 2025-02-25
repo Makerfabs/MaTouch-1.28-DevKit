@@ -51,6 +51,7 @@
 #define RGB565_ORANGE RGB565(255, 165, 0)
 #define RGB565_GREENYELLOW RGB565(173, 255, 41)
 #define RGB565_PALERED RGB565(255, 130, 198)
+#define RGB565_PINK RGB565(255, 198, 198)
 
 // Color definitions
 #ifndef DISABLE_COLOR_DEFINES
@@ -137,7 +138,7 @@
 #endif
 
 #if !defined(ATTINY_CORE)
-GFX_INLINE GFXglyph *pgm_read_glyph_ptr(const GFXfont *gfxFont, uint8_t c)
+GFX_INLINE static GFXglyph *pgm_read_glyph_ptr(const GFXfont *gfxFont, uint8_t c)
 {
 #ifdef __AVR__
   return &(((GFXglyph *)pgm_read_pointer(&gfxFont->glyph))[c]);
@@ -149,7 +150,7 @@ GFX_INLINE GFXglyph *pgm_read_glyph_ptr(const GFXfont *gfxFont, uint8_t c)
 #endif //__AVR__
 }
 
-GFX_INLINE uint8_t *pgm_read_bitmap_ptr(const GFXfont *gfxFont)
+GFX_INLINE static uint8_t *pgm_read_bitmap_ptr(const GFXfont *gfxFont)
 {
 #ifdef __AVR__
   return (uint8_t *)pgm_read_pointer(&gfxFont->bitmap);
@@ -239,7 +240,7 @@ public:
   int8_t u8g2_font_decode_get_signed_bits(uint8_t cnt);
   void u8g2_font_decode_len(uint8_t len, uint8_t is_foreground, uint16_t color, uint16_t bg);
 #endif // defined(U8G2_FONT_SUPPORT)
-  virtual void flush(void);
+  virtual void flush(bool force_flush = false);
 #endif // !defined(ATTINY_CORE)
 
   // adopt from LovyanGFX

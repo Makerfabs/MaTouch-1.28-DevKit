@@ -72,21 +72,21 @@ static int16_t x = -1, y = -1, w = -1, h = -1;
 
 void setup()
 {
+#ifdef DEV_DEVICE_INIT
+  DEV_DEVICE_INIT();
+#endif
+
   Serial.begin(115200);
   // Serial.setDebugOutput(true);
   // while(!Serial);
   Serial.println("Arduino_GFX Motion JPEG SIMD Decoder Image Viewer example");
-
-#ifdef GFX_EXTRA_PRE_INIT
-  GFX_EXTRA_PRE_INIT();
-#endif
 
   // Init Display
   if (!gfx->begin())
   {
     Serial.println("gfx->begin() failed!");
   }
-  gfx->fillScreen(BLACK);
+  gfx->fillScreen(RGB565_BLACK);
 
 #ifdef GFX_BL
   pinMode(GFX_BL, OUTPUT);

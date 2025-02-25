@@ -91,9 +91,9 @@ arduinoVNC vnc = arduinoVNC(vnc_gfx);
 
 void TFTnoWifi(void)
 {
-  gfx->fillScreen(BLACK);
+  gfx->fillScreen(RGB565_BLACK);
   gfx->setCursor(0, ((gfx->height() / 2) - (5 * 8)));
-  gfx->setTextColor(RED);
+  gfx->setTextColor(RGB565_RED);
   gfx->setTextSize(5);
   gfx->println("NO WIFI!");
   gfx->setTextSize(2);
@@ -102,9 +102,9 @@ void TFTnoWifi(void)
 
 void TFTnoVNC(void)
 {
-  gfx->fillScreen(BLACK);
+  gfx->fillScreen(RGB565_BLACK);
   gfx->setCursor(0, ((gfx->height() / 2) - (4 * 8)));
-  gfx->setTextColor(GREEN);
+  gfx->setTextColor(RGB565_GREEN);
   gfx->setTextSize(4);
   gfx->println("connect VNC");
   gfx->setTextSize(2);
@@ -169,14 +169,14 @@ void handle_keyboard()
 
 void setup(void)
 {
+#ifdef DEV_DEVICE_INIT
+  DEV_DEVICE_INIT();
+#endif
+
   Serial.begin(115200);
   // Serial.setDebugOutput(true);
   // while(!Serial);
   Serial.println("Arduino_GFX VNC example");
-
-#ifdef GFX_EXTRA_PRE_INIT
-  GFX_EXTRA_PRE_INIT();
-#endif
 
   // Init keyboard device
   keyboard_init();
@@ -186,7 +186,7 @@ void setup(void)
   {
     Serial.println("gfx->begin() failed!");
   }
-  gfx->fillScreen(BLACK);
+  gfx->fillScreen(RGB565_BLACK);
 
 #ifdef GFX_BL
   pinMode(GFX_BL, OUTPUT);

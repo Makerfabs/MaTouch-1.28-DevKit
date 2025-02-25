@@ -129,6 +129,10 @@ void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
 
 void setup()
 {
+#ifdef DEV_DEVICE_INIT
+  DEV_DEVICE_INIT();
+#endif
+
   Serial.begin(115200);
   // Serial.setDebugOutput(true);
   // while(!Serial);
@@ -136,16 +140,12 @@ void setup()
   String LVGL_Arduino = String('V') + lv_version_major() + "." + lv_version_minor() + "." + lv_version_patch();
   Serial.println(LVGL_Arduino);
 
-#ifdef GFX_EXTRA_PRE_INIT
-  GFX_EXTRA_PRE_INIT();
-#endif
-
   // Init Display
   if (!gfx->begin())
   {
     Serial.println("gfx->begin() failed!");
   }
-  gfx->fillScreen(BLACK);
+  gfx->fillScreen(RGB565_BLACK);
 
 #ifdef GFX_BL
   pinMode(GFX_BL, OUTPUT);
@@ -167,16 +167,16 @@ void setup()
 #endif
 
 #ifdef ESP32
-#if defined(DIRECT_MODE) && (defined(CANVAS) || defined(RGB_PANEL))
+#if defined(DIRECT_MODE) && (defined(CANVAS) || defined(RGB_PANEL) || defined(DSI_PANEL))
   disp_draw_buf = (lv_color_t *)gfx->getFramebuffer();
-#else  // !(defined(DIRECT_MODE) && (defined(CANVAS) || defined(RGB_PANEL)))
+#else  // !(defined(DIRECT_MODE) && (defined(CANVAS) || defined(RGB_PANEL) || defined(DSI_PANEL)))
   disp_draw_buf = (lv_color_t *)heap_caps_malloc(bufSize * 2, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
   if (!disp_draw_buf)
   {
     // remove MALLOC_CAP_INTERNAL flag try again
     disp_draw_buf = (lv_color_t *)heap_caps_malloc(bufSize * 2, MALLOC_CAP_8BIT);
   }
-#endif // !(defined(DIRECT_MODE) && (defined(CANVAS) || defined(RGB_PANEL)))
+#endif // !(defined(DIRECT_MODE) && (defined(CANVAS) || defined(RGB_PANEL) || defined(DSI_PANEL)))
 #else  // !ESP32
   Serial.println("LVGL disp_draw_buf heap_caps_malloc failed! malloc again...");
   disp_draw_buf = (lv_color_t *)malloc(bufSize * 2);
@@ -219,15 +219,15 @@ void loop()
   lv_timer_handler(); /* let the GUI do its work */
 
 #ifdef DIRECT_MODE
-#if defined(CANVAS) || defined(RGB_PANEL)
+#if defined(CANVAS) || defined(RGB_PANEL) || defined(DSI_PANEL)
   gfx->flush();
-#else // !(defined(CANVAS) || defined(RGB_PANEL))
+#else // !(defined(CANVAS) || defined(RGB_PANEL) || defined(DSI_PANEL))
 #if (LV_COLOR_16_SWAP != 0)
   gfx->draw16bitBeRGBBitmap(0, 0, (uint16_t *)disp_draw_buf, screenWidth, screenHeight);
 #else
   gfx->draw16bitRGBBitmap(0, 0, (uint16_t *)disp_draw_buf, screenWidth, screenHeight);
 #endif
-#endif // !(defined(CANVAS) || defined(RGB_PANEL))
+#endif // !(defined(CANVAS) || defined(RGB_PANEL) || defined(DSI_PANEL))
 #else  // !DIRECT_MODE
 #ifdef CANVAS
   gfx->flush();
