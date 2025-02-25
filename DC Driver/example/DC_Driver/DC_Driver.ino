@@ -1,4 +1,8 @@
 /*
+Author: Yuki
+Date:2025.2.24
+Code version: V1.0.2
+
 Library version:
 Arduino IDE 2.3.4
 esp32 V3.1.1
