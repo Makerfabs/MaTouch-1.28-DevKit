@@ -126,7 +126,6 @@ void ui_Screen7_screen_init(void);
 void ui_event_Screen7(lv_event_t * e);
 extern lv_obj_t * ui_Screen7;
 extern lv_obj_t * ui_Image1;
-
 // EVENTS
 
 extern lv_obj_t * ui____initial_actions0;
