@@ -1,17 +1,26 @@
 /*
+Author: Yuki
+Date:2025.2.25
+Code version: V1.0.2
+
 Library version:
-Arduino IDE 2.3.2
-esp32 V3.0.7
-GFX Library for Arduino v1.4.9
+Arduino IDE 2.3.4
+esp32 V3.1.1
+GFX Library for Arduino v1.5.4
 lvgl v8.3.11
 Adafruit NeoPixel v1.12.3
+
+Tools:
+USB CDC On Boot: Enabled
+Flash size: 16MB(128Mb)
+Partition Schrme: 16M Flash(3MB APP/9.9MB FATFS)
+PSRAM: OPI PSRAM
 */
 
 #include <lvgl.h>
 #include <Arduino_GFX_Library.h>
 #include <ui.h>
 #include <Adafruit_NeoPixel.h>
-
 #include "touch.h"
 #include "pin_config.h"
 #include "power.h"
@@ -20,8 +29,8 @@ Adafruit NeoPixel v1.12.3
 #define COUNT_PAGE 2
 #define BRIGHT_PAGE 3
 #define COLOR_PAGE 4
-#define FREQ_PAGE 6
 #define MODE_PAGE 5
+#define FREQ_PAGE 6
 
 #define NORMAL_MODE 0
 #define BLINK_MODE 1
@@ -87,7 +96,9 @@ int flow_list[6] = {60, 60, 30, 20, 10, 5};
 int page_index = 0;
 int rgb_index = 0;
 int led_channel = 0;
-int close_flag = 0;
+int on_off_flag = 0;
+int temp_bright1 = 0;
+int temp_bright2 = 0;
 int mode_index = 0;
 int mode_flag = 0;
 int rd_color_index = 0;
@@ -194,13 +205,25 @@ void Task_main(void *pvParameters)
             rd_color_flag = 0;
         }
 
-        if (close_flag == 1)
-        {
-            Led_1.max_bright = 0;
-            Led_2.max_bright = 0;
-            Led_1.bright = 0;
-            Led_2.bright = 0;
-            close_flag = 0;
+        if (on_off_flag == 1)
+        {   
+            on_off_flag = 0;
+            if(Led_1.max_bright!=0)//全关
+            {
+                temp_bright1 = Led_1.max_bright;
+                temp_bright2 = Led_2.max_bright;
+                Led_1.max_bright = 0;
+                Led_2.max_bright = 0;
+                Led_1.bright = 0;
+                Led_2.bright = 0;
+            }
+            else//恢复
+            {
+                Led_1.max_bright = temp_bright1;
+                Led_2.max_bright = temp_bright2;
+                Led_1.bright = temp_bright1;
+                Led_2.bright = temp_bright2;
+            }
         }
 
         if (millis() - runtime > 3000)
