@@ -1,7 +1,7 @@
 /*
-Author: Yuki
+Author: copper
 Date:2025.2.27
-Code version: V1.0.2
+Code version: V1.0.4
 
 Library version:
 Arduino IDE 2.3.4
@@ -90,7 +90,7 @@ Led Led_2 =
         RGB_MODE,
         {255, 255, 255}};
 
-int flow_list[6] = {60, 60, 30, 20, 10, 5};
+int flow_list[6] = {0};
 
 // UI status
 int page_index = 0;
@@ -298,8 +298,8 @@ void Task_led1(void *pvParameters)
             if (index > Led_1.count)
                 index = 0;
 
-            flow_led(&strip_1, &Led_1, index++, 0);
-            vTaskDelay(50);
+            flow_led(&strip_1, &Led_1, index++, 0, Led_1.count);
+            judge_flow_list(Led_1.freq);
         }
         else if (Led_1.mode == FLOW_2_MODE)
         {
@@ -308,8 +308,8 @@ void Task_led1(void *pvParameters)
             if (index ==0)
                 index = Led_1.count;
 
-            flow_led(&strip_1, &Led_1, index--, 1);
-            vTaskDelay(50);
+            flow_led(&strip_1, &Led_1, index--, 1, Led_1.count);
+            judge_flow_list(Led_1.freq);
         }
 
         // fresh_led(&strip_1, &Led_1);
@@ -361,8 +361,8 @@ void Task_led2(void *pvParameters)
             if (index > Led_2.count)
                 index = 0;
 
-            flow_led(&strip_2, &Led_2, index++, 0);
-            vTaskDelay(50);
+            flow_led(&strip_2, &Led_2, index++, 0, Led_2.count);
+            judge_flow_list(Led_2.freq);
         }
         else if (Led_2.mode == FLOW_2_MODE)
         {
@@ -371,8 +371,8 @@ void Task_led2(void *pvParameters)
             if (index == 0)
                 index = Led_2.count;
 
-            flow_led(&strip_2, &Led_2, index--, 1);
-            vTaskDelay(50);
+            flow_led(&strip_2, &Led_2, index--, 1, Led_2.count);
+            judge_flow_list(Led_2.freq);
         }
 
         // fresh_led(&strip_2, &Led_2);
@@ -600,14 +600,15 @@ void fresh_led(Adafruit_NeoPixel *strip, Led *led)
     strip->show();
 }
 
-void flow_led(Adafruit_NeoPixel *strip, Led *led, int index, int dir)
+void flow_led(Adafruit_NeoPixel *strip, Led *led, int index, int dir, int counts)
 {
     // int flow_list[5] = {0, 60, 30, 20, 10};
     strip->setBrightness(led->bright);
 
     for (int i = 0; i < strip->numPixels(); i++)
     {
-        int step = flow_list[led->freq];
+        // int step = flow_list[led->freq];
+        int step = counts;
         float rate = 0.0;
 
         if (dir == 0)
@@ -625,3 +626,30 @@ void flow_led(Adafruit_NeoPixel *strip, Led *led, int index, int dir)
         strip->show();
     }
 }
+
+void judge_flow_list(int freq)
+{
+    switch(freq)
+    {
+        case 1:
+        vTaskDelay( 200 );
+        break;
+        case 2:
+        vTaskDelay( 100 );
+        break;
+        case 3:
+        vTaskDelay( 50 );
+        break;
+        case 4:
+        vTaskDelay( 20 );
+        break;
+        case 5:
+        vTaskDelay( 5 );
+        break;
+        default:
+        vTaskDelay( 200 );
+        break; 
+    }
+}
+           
+    
