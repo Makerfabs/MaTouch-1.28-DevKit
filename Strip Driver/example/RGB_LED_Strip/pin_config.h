@@ -35,6 +35,6 @@
 #define WS2812_PIN1 6
 #define WS2812_PIN2 7
 
-#define LED_COUNT 60
+//#define LED_COUNT 60
 
 #endif

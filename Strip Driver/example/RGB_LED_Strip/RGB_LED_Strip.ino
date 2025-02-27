@@ -1,6 +1,6 @@
 /*
 Author: Yuki
-Date:2025.2.25
+Date:2025.2.27
 Code version: V1.0.2
 
 Library version:
@@ -8,7 +8,7 @@ Arduino IDE 2.3.4
 esp32 V3.1.1
 GFX Library for Arduino v1.5.4
 lvgl v8.3.11
-Adafruit NeoPixel v1.12.3
+Adafruit NeoPixel v1.12.4
 
 Tools:
 USB CDC On Boot: Enabled
@@ -49,8 +49,8 @@ static lv_color_t buf[screenWidth * screenHeight / 10];
 
 Arduino_ESP32SPI *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, HSPI, true); // Constructor
 Arduino_GFX *gfx = new Arduino_GC9A01(bus, TFT_RES, 3 /* rotation */, true /* IPS */);
-Adafruit_NeoPixel strip_1(LED_COUNT, WS2812_PIN1, NEO_RGB + NEO_KHZ800);
-Adafruit_NeoPixel strip_2(LED_COUNT, WS2812_PIN2, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel strip_1(300, WS2812_PIN1, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel strip_2(300, WS2812_PIN2, NEO_RGB + NEO_KHZ800);
 
 // Encoder
 int counter = 0;
