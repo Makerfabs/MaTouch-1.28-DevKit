@@ -33,6 +33,8 @@ void ui_event_ImgButton2(lv_event_t * e);
 lv_obj_t * ui_ImgButton2;
 lv_obj_t * ui_Label10;
 lv_obj_t * ui_Label21;
+lv_obj_t * ui_Label24;
+lv_obj_t * ui_Label25;
 // CUSTOM VARIABLES
 
 

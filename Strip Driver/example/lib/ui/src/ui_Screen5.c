@@ -13,7 +13,7 @@ void ui_Screen5_screen_init(void)
     lv_obj_set_style_bg_opa(ui_Screen5, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Dropdown2 = lv_dropdown_create(ui_Screen5);
-    lv_dropdown_set_options(ui_Dropdown2, "Normal\nBlink\nFlow_1\nFlow_2");
+    lv_dropdown_set_options(ui_Dropdown2, "Normal\nBlink\nForward\nBackward");
     lv_obj_set_width(ui_Dropdown2, 100);
     lv_obj_set_height(ui_Dropdown2, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_Dropdown2, -2);

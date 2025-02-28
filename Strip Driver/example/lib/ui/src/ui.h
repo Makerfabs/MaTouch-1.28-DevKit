@@ -48,6 +48,8 @@ void ui_event_ImgButton2(lv_event_t * e);
 extern lv_obj_t * ui_ImgButton2;
 extern lv_obj_t * ui_Label10;
 extern lv_obj_t * ui_Label21;
+extern lv_obj_t * ui_Label24;
+extern lv_obj_t * ui_Label25;
 // CUSTOM VARIABLES
 
 // SCREEN: ui_Screen3
