@@ -37,4 +37,8 @@
 
 #define LED_COUNT 300
 
+//INA219
+#define I2C_SDA 8
+#define I2C_SCL 9
+
 #endif

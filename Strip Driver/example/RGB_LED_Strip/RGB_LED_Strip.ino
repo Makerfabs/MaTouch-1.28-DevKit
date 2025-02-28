@@ -9,6 +9,7 @@ esp32 V3.1.1
 GFX Library for Arduino v1.5.4
 lvgl v8.3.11
 Adafruit NeoPixel v1.12.4
+Adafruit INA219 v1.2.3
 
 Tools:
 USB CDC On Boot: Enabled
@@ -21,6 +22,7 @@ PSRAM: OPI PSRAM
 #include <Arduino_GFX_Library.h>
 #include <ui.h>
 #include <Adafruit_NeoPixel.h>
+#include <Adafruit_INA219.h>
 #include "touch.h"
 #include "pin_config.h"
 #include "power.h"
@@ -51,7 +53,9 @@ Arduino_ESP32SPI *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI,
 Arduino_GFX *gfx = new Arduino_GC9A01(bus, TFT_RES, 3 /* rotation */, true /* IPS */);
 Adafruit_NeoPixel strip_1(LED_COUNT, WS2812_PIN1, NEO_RGB + NEO_KHZ800);
 Adafruit_NeoPixel strip_2(LED_COUNT, WS2812_PIN2, NEO_RGB + NEO_KHZ800);
+Adafruit_INA219 ina219(0x40);
 
+float AB_current = 0;
 // Encoder
 int counter = 0;
 int State;
@@ -110,6 +114,14 @@ void setup()
 
     pin_init();
     Wire.begin(TOUCH_SDA, TOUCH_SCL);
+    Wire1.begin(I2C_SDA, I2C_SCL);
+
+    if (!ina219.begin(&Wire1))
+    {
+        Serial.println("Failed to find INA219 chip");
+        delay(1000);
+    }
+
     gfx->begin();
 
     delay(200);
@@ -171,6 +183,8 @@ void Task_main(void *pvParameters)
 {
     while (1)
     {
+        AB_current = ina219.getCurrent_mA()*2;
+
         if (voltage_flag == 1)
         {
             set_voltage_extern();
@@ -524,7 +538,8 @@ void load_led_config(Led *led)
 void obj_set(Led *led)
 {
     char temp[40];
-
+    sprintf(temp, "%.0fmA", fabs(AB_current));
+    lv_label_set_text(ui_Label25, temp);
     // sprintf(temp, "Brightness\n%d", led->max_bright);
     sprintf(temp, "%d", led->max_bright);
     lv_label_set_text(ui_Label5, temp);
