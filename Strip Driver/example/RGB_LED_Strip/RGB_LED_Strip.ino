@@ -1,7 +1,7 @@
 /*
 Author: copper
-Date:2025.2.27
-Code version: V1.0.4
+Date:2025.2.28
+Code version: V1.0.5
 
 Library version:
 Arduino IDE 2.3.4
@@ -49,8 +49,8 @@ static lv_color_t buf[screenWidth * screenHeight / 10];
 
 Arduino_ESP32SPI *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, HSPI, true); // Constructor
 Arduino_GFX *gfx = new Arduino_GC9A01(bus, TFT_RES, 3 /* rotation */, true /* IPS */);
-Adafruit_NeoPixel strip_1(300, WS2812_PIN1, NEO_RGB + NEO_KHZ800);
-Adafruit_NeoPixel strip_2(300, WS2812_PIN2, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel strip_1(LED_COUNT, WS2812_PIN1, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel strip_2(LED_COUNT, WS2812_PIN2, NEO_RGB + NEO_KHZ800);
 
 // Encoder
 int counter = 0;
@@ -148,9 +148,9 @@ void setup()
 
     Serial.println("Setup done");
     xTaskCreatePinnedToCore(Task_TFT, "Task_TFT", 10240, NULL, 2, NULL, 0);
-    xTaskCreatePinnedToCore(Task_main, "Task_main", 4096, NULL, 1, NULL, 1);
-    xTaskCreatePinnedToCore(Task_led1, "Task_led1", 10240, NULL, 3, NULL, 1);
-    xTaskCreatePinnedToCore(Task_led2, "Task_led2", 10240, NULL, 3, NULL, 1);
+    xTaskCreatePinnedToCore(Task_main, "Task_main", 4096, NULL, 1, NULL, 0);
+    xTaskCreatePinnedToCore(Task_led1, "Task_led1", 10240, NULL, 4, NULL, 0);
+    xTaskCreatePinnedToCore(Task_led2, "Task_led2", 10240, NULL, 4, NULL, 0);
 }
 
 void loop()
@@ -298,8 +298,7 @@ void Task_led1(void *pvParameters)
             if (index > Led_1.count)
                 index = 0;
 
-            flow_led(&strip_1, &Led_1, index++, 0, Led_1.count);
-            judge_flow_list(Led_1.freq);
+            flow_led(&strip_1, &Led_1, index++);
         }
         else if (Led_1.mode == FLOW_2_MODE)
         {
@@ -308,8 +307,7 @@ void Task_led1(void *pvParameters)
             if (index ==0)
                 index = Led_1.count;
 
-            flow_led(&strip_1, &Led_1, index--, 1, Led_1.count);
-            judge_flow_list(Led_1.freq);
+            flow_led(&strip_1, &Led_1, index--);
         }
 
         // fresh_led(&strip_1, &Led_1);
@@ -361,8 +359,7 @@ void Task_led2(void *pvParameters)
             if (index > Led_2.count)
                 index = 0;
 
-            flow_led(&strip_2, &Led_2, index++, 0, Led_2.count);
-            judge_flow_list(Led_2.freq);
+            flow_led(&strip_2, &Led_2, index++);
         }
         else if (Led_2.mode == FLOW_2_MODE)
         {
@@ -371,8 +368,7 @@ void Task_led2(void *pvParameters)
             if (index == 0)
                 index = Led_2.count;
 
-            flow_led(&strip_2, &Led_2, index--, 1, Led_2.count);
-            judge_flow_list(Led_2.freq);
+            flow_led(&strip_2, &Led_2, index--);
         }
 
         // fresh_led(&strip_2, &Led_2);
@@ -600,31 +596,56 @@ void fresh_led(Adafruit_NeoPixel *strip, Led *led)
     strip->show();
 }
 
-void flow_led(Adafruit_NeoPixel *strip, Led *led, int index, int dir, int counts)
+void flow_led(Adafruit_NeoPixel *strip, Led *led, int index)
 {
     // int flow_list[5] = {0, 60, 30, 20, 10};
     strip->setBrightness(led->bright);
+    int step = led->count;
+    float rate = 0.0;
 
-    for (int i = 0; i < strip->numPixels(); i++)
+    if(led->mode == FLOW_1_MODE)
     {
-        // int step = flow_list[led->freq];
-        int step = counts;
-        float rate = 0.0;
+        for (int i = 0; i <= led->count; i++)
+        {           
+            rate = ((index+5) % step) / (float)step;
 
-        if (dir == 0)
-            rate = ((i + index) % step) / (float)step;
-        else
-            rate = (step - (i + index) % step) / (float)step;
+            uint32_t color = strip->Color((int)(led->color[0] * rate), (int)(led->color[1] * rate), (int)(led->color[2] * rate));
 
-        uint32_t color = strip->Color((int)(led->color[0] * rate), (int)(led->color[1] * rate), (int)(led->color[2] * rate));
+            strip->setPixelColor(i-1, color);
 
-        if (i < (led->count))
-            strip->setPixelColor(i, color);
-        else
             strip->setPixelColor(i, 0, 0, 0);
 
-        strip->show();
+            strip->show();
+            judge_flow_list(led->freq);
+            if(led->mode == FLOW_2_MODE)
+            {
+                strip->setPixelColor(i, color);
+                return ;
+            }
+        }
     }
+    else if(led->mode == FLOW_2_MODE)
+    {
+        for (int i = led->count-1; i >= -1; i--)
+        {
+            rate = ((index+5) % step) / (float)step;
+
+            uint32_t color1 = strip->Color((int)(led->color[0] * rate), (int)(led->color[1] * rate), (int)(led->color[2] * rate));
+
+            strip->setPixelColor(i+1, color1);  
+
+            strip->setPixelColor(i, 0, 0, 0);
+
+            strip->show();
+            judge_flow_list(led->freq);
+            if(led->mode == FLOW_1_MODE)
+            {
+                strip->setPixelColor(i, color1);
+                return ;
+            }
+        }
+    }
+
 }
 
 void judge_flow_list(int freq)
@@ -633,21 +654,27 @@ void judge_flow_list(int freq)
     {
         case 1:
         vTaskDelay( 200 );
+        // Serial.println("111111\n");
         break;
         case 2:
         vTaskDelay( 100 );
+        // Serial.println("22222\n");
         break;
         case 3:
         vTaskDelay( 50 );
+        // Serial.println("33333\n");
         break;
         case 4:
         vTaskDelay( 20 );
+        // Serial.println("4444\n");
         break;
         case 5:
         vTaskDelay( 5 );
+        // Serial.println("555555\n");
         break;
         default:
-        vTaskDelay( 200 );
+        vTaskDelay( 2 );
+        // Serial.println("000000\n");
         break; 
     }
 }
