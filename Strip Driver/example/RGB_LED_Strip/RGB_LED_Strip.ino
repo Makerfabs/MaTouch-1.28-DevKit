@@ -1,7 +1,7 @@
 /*
-Author: copper
+Author: Yuki
 Date:2025.2.28
-Code version: V1.0.5
+Code version: V1.0.6
 
 Library version:
 Arduino IDE 2.3.4
@@ -331,6 +331,10 @@ void Task_led2(void *pvParameters)
         else if (Led_2.mode == BLINK_MODE)
         {
             float step = Led_2.max_bright / 20.0;
+
+            if(Led_1.max_bright < 20)
+                step = 1;
+
             if (dir == 1)
             {
                 Led_2.bright += (int)(Led_2.freq * step);
@@ -623,6 +627,10 @@ void flow_led(Adafruit_NeoPixel *strip, Led *led, int index)
                 return ;
             }
         }
+        for (int i = strip->numPixels(); i > led->count; i--) //熄灭设置数量以外的灯
+        {
+            strip->setPixelColor(i, 0, 0, 0);
+        }
     }
     else if(led->mode == FLOW_2_MODE)
     {
@@ -643,6 +651,10 @@ void flow_led(Adafruit_NeoPixel *strip, Led *led, int index)
                 strip->setPixelColor(i, color1);
                 return ;
             }
+        }
+        for (int i = strip->numPixels(); i > led->count; i--) //熄灭设置数量以外的灯
+        {
+            strip->setPixelColor(i, 0, 0, 0);
         }
     }
 
