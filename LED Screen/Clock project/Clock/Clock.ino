@@ -53,15 +53,11 @@ int fresh_flag = 0;
 MatrixPanel_I2S_DMA *dma_display = nullptr;
 
 CWDateTime cwDateTime;
-Clockface *clockface;
-//Clockface1 *clockface1;
+//Clockface *clockface;
+Clockface1 *clockface1;
 Clockface2 *clockface2;
 Clockface3 *clockface3;
 RTC_PCF8563 rtc;
-
-// Replace with your network credentials
-const char *ssid = "Makerfabs";
-const char *password = "20160704";
 
 #define panelResX 64     // Number of pixels wide of each INDIVIDUAL panel module. 
 #define panelResY 64     // Number of pixels tall of each INDIVIDUAL panel module.
@@ -126,14 +122,14 @@ void setup()
 
   displaySetup();
 
-  clockface = new Clockface(dma_display);
-  //clockface1 = new Clockface1(dma_display);
+  //clockface = new Clockface(dma_display);
+  clockface1 = new Clockface1(dma_display);
   clockface2 = new Clockface2(dma_display);
   clockface3 = new Clockface3(dma_display);
 
   cwDateTime.begin();
   
-  clockface->setup(&cwDateTime);
+  clockface3->setup(&cwDateTime);
   Serial.println("Setup done");
 
   xTaskCreatePinnedToCore(Task_TFT, "Task_TFT", 10240, NULL, 2, NULL, 0);
@@ -204,20 +200,20 @@ void time_bg(int bg)
   switch(bg)
   {
     case 0:
-    clockface->setup(&cwDateTime);
-    clockface->update();
-    fresh_flag=0;break;
-    case 1:
     clockface3->setup(&cwDateTime);
     clockface3->update();
     fresh_flag=0;break;
-    case 2:
+    case 1:
     clockface2->setup(&cwDateTime);
     clockface2->update();
     fresh_flag=0;break;
-    /*case 3:
+    case 2:
     clockface1->setup(&cwDateTime);
     clockface1->update();
+    fresh_flag=0;break;
+    /*case 3:
+    clockface->setup(&cwDateTime);
+    clockface->update();
     fresh_flag=0;break;*/
   }
 }
@@ -226,19 +222,19 @@ void update_time(int time)
 {
   if(time==0)
   {
-    clockface->update();
+    clockface3->update();
   }
   else if(time==1)
   {
-    clockface3->update();
+    clockface2->update();
   }
   else if(time==2)
   {
-    clockface2->update();
+    clockface1->update();
   }
   /*else if(time==3)
   {
-    clockface1->update();
+    clockface->update();
   }*/
 }
 
