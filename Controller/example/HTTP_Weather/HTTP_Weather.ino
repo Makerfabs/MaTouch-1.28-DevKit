@@ -4,6 +4,7 @@ Arduino IDE 2.3.6
 esp32 V3.2.0
 GFX Library for Arduino v1.6.0
 ArduinoJson v7.2.0
+
 Tools:
 USB CDC On Boot: Enabled
 */

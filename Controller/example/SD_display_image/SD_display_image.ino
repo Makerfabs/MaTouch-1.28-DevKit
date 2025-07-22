@@ -4,6 +4,9 @@ Arduino IDE v2.3.6
 esp32 v3.2.0
 GFX Library for Arduino v1.6.0
 JPEGDecoder v2.0.0
+
+Tools:
+USB CDC On Boot: Enabled
 */
 #include <Arduino_GFX_Library.h>
 #include "touch.h"

@@ -5,6 +5,9 @@ esp32 V3.2.0
 GFX Library for Arduino v1.6.0
 DHT sensor library v1.4.6
 Adafruit Unified Sensor v1.1.14
+
+Tools:
+USB CDC On Boot: Enabled
 */
 
 #include <Arduino_GFX_Library.h>

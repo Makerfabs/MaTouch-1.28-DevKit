@@ -5,6 +5,9 @@ esp32 v3.2.0
 GFX Library for Arduino v1.6.0
 RTClib v2.1.4
 Adafruit BusIO v1.16.2
+
+Tools:
+USB CDC On Boot: Enabled
 */
 
 #include <Arduino_GFX_Library.h>
