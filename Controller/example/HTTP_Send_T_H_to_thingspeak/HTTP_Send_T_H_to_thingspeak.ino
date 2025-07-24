@@ -13,6 +13,7 @@ USB CDC On Boot: Enabled
 #include <Arduino_GFX_Library.h>
 #include <DHT.h>
 #include <WiFi.h>
+#include <HTTPClient.h>
 
 #define DHTPIN 16
 #define DHTTYPE DHT11
@@ -28,12 +29,11 @@ float h,t;
 #define TFT_SCLK 42
 #define TFT_DC 46
 
-const char* ssid     = "Makerfabs"; // Change this to your WiFi SSID
-const char* password = "20160704"; // Change this to your WiFi password
+const char* ssid     = "WIFI SSID"; // Change this to your WiFi SSID
+const char* password = "WIFI PIN"; // Change this to your WiFi password
 
 const char* host = "api.thingspeak.com"; // This should not be changed
-const int httpPort = 80; // This should not be changed
-const String writeApiKey = "ACCJTKMB6EWMBHIC"; // Change this to your Write API key
+const String writeApiKey = "Your API key"; // Change this to your Write API key
 
 Arduino_ESP32SPI *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, HSPI, true);
 Arduino_GFX *gfx = new Arduino_GC9A01(bus, TFT_RES, 0 /* rotation */, true /* IPS */);
@@ -75,17 +75,42 @@ void setup()
 
 void loop()
 {
-  WiFiClient client;
-  String footer = String(" HTTP/1.1\r\n") + "Host: " + String(host) + "\r\n" + "Connection: close\r\n\r\n";
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    HTTPClient http;
 
-  h = dht.readHumidity();
-  t = dht.readTemperature();
-  if (!client.connect(host, httpPort)) {
-    return;
+    h = dht.readHumidity();
+    t = dht.readTemperature();
+
+    String url = "http://" + String(host) + "/update";
+           url += "?api_key=" + writeApiKey;
+           url += "&field1=" + String(t);
+           url += "&field2=" + String(h);
+
+    http.begin(url);
+
+    int httpResponseCode = http.GET();
+
+    if (httpResponseCode > 0)
+    {
+      Serial.print("HTTP Response code: ");
+      Serial.println(httpResponseCode);
+      String payload = http.getString();
+      Serial.println("Response: " + payload);
+    }
+    else
+    {
+      Serial.print("Error code: ");
+      Serial.println(httpResponseCode);
+      Serial.println("Error: " + http.errorToString(httpResponseCode));
+    }
+
+    http.end();
   }
-
-  client.print("GET /update?api_key=" + writeApiKey + "&field1=" + t + "&field2=" + h + footer);
-  readResponse(&client);
+  else
+  {
+    Serial.println("WiFi Disconnected");
+  }
 
   gfx->fillRect(165, 90, 70, 30, WHITE);
   gfx->setCursor(170, 95);
@@ -95,27 +120,4 @@ void loop()
   gfx->print(h);
 
   delay(60000);
-}
-
-void readResponse(WiFiClient *client)
-{
-  unsigned long timeout = millis();
-  while(client->available() == 0)
-  {
-    if(millis() - timeout > 5000)
-    {
-      Serial.println(">>> Client Timeout !");
-      client->stop();
-      return;
-    }
-  }
-
-  // Read all the lines of the reply from server and print them to Serial
-  while(client->available()) 
-  {
-    String line = client->readStringUntil('\r');
-    Serial.print(line);
-  }
-
-  Serial.printf("\nClosing connection\n\n");
 }
