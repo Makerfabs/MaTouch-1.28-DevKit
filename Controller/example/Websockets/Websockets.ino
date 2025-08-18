@@ -45,18 +45,18 @@ const char* htmlPage = R"rawliteral(
   <meta charset="utf-8">
   <title>Websocket Demo Real-time T&H</title>
   <style>
-    body { font-family: Arial; text-align: center; margin-top: 50px; background-color: #f0f0f0; } <!-- Body styles: font, centering, top margin, and background color -->
-    .container { max-width: 500px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); } <!-- Main container styles: max width, centering, padding, background, border radius, and shadow -->
+    body { font-family: Arial; text-align: center; margin-top: 50px; background-color: #f0f0f0; } /* Body styles: font, centering, top margin, and background color */
+    .container { max-width: 500px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); } /* Main container styles: max width, centering, padding, background, border radius, and shadow */
     h1 { color: #333; }
-    .data-container { display: flex; justify-content: space-around; margin-top: 30px; } <!-- Data container styles: flex layout, evenly spaced, and top margin -->
-    .data-box { padding: 15px; border-radius: 8px; width: 45%; } <!-- Data box styles: padding, border radius, and width -->
+    .data-container { display: flex; justify-content: space-around; margin-top: 30px; } /* Data container styles: flex layout, evenly spaced, and top margin */
+    .data-box { padding: 15px; border-radius: 8px; width: 45%; } /* Data box styles: padding, border radius, and width */
     .temp-box { background-color: #e3f2fd; }
     .humid-box { background-color: #e1f5fe; }
-    .value { font-size: 36px; font-weight: bold; margin: 10px 0; } <!-- Value styles: font size, bold, and vertical margins -->
+    .value { font-size: 36px; font-weight: bold; margin: 10px 0; } /* Value styles: font size, bold, and vertical margins */
     .temp-value { color: #f44336; }
     .humid-value { color: #2196f3; }
-    .label { font-size: 18px; color: #555; } <!-- Label styles: font size and color -->
-    .icon { font-size: 24px; margin-right: 5px; } <!-- Icon styles: font size and right margin -->
+    .label { font-size: 18px; color: #555; } /* Label styles: font size and color */
+    .icon { font-size: 24px; margin-right: 5px; } /* Icon styles: font size and right margin */
   </style>
 </head>
 <body>
@@ -74,12 +74,12 @@ const char* htmlPage = R"rawliteral(
     </div>
   </div>
   <script>
-    var ws = new WebSocket("ws://" + location.hostname + ":81/"); <!-- Create a WebSocket connection to the ESP32 on port 81 -->
-    ws.onmessage = function(event) { <!-- Define the WebSocket message handler -->
-      var data = event.data.split(','); <!-- Split the received data by comma -->
-      if(data.length >= 2) { <!-- Check whether the data contains at least two values (temperature and humidity) -->
-        document.getElementById("temp").innerText = data[0] + "°C"; <!-- Update temperature display -->
-        document.getElementById("humid").innerText = data[1] + "%"; <!-- Update humidity display -->
+    var ws = new WebSocket("ws://" + location.hostname + ":81/"); // Create a WebSocket connection to the ESP32 on port 81
+    ws.onmessage = function(event) { // Define the WebSocket message handler
+      var data = event.data.split(','); // Split the received data by comma
+      if(data.length >= 2) { // Check whether the data contains at least two values (temperature and humidity)
+        document.getElementById("temp").innerText = data[0] + "°C"; // Update temperature display
+        document.getElementById("humid").innerText = data[1] + "%"; // Update humidity display
       }
     };
   </script>
