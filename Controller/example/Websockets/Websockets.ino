@@ -5,7 +5,7 @@ esp32 V3.2.0
 GFX Library for Arduino v1.6.0
 DHT sensor library v1.4.6
 Adafruit Unified Sensor v1.1.14
-WebSockets v2.6.1
+WebSockets v2.7.0
 
 Tools:
 USB CDC On Boot: Enabled
