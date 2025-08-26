@@ -54,7 +54,7 @@ void setup()
   }
 
   listDir(SD, "/", 0); // Read SD card files
-  writeFile(SD, "/hello.txt", "Hello World!\n"); //Write a file
+  writeFile(SD, "/hello.txt", "I succeed to write files with SD card with MaTouch!\n"); //Write a file
   readFile(SD, "/hello.txt"); //Read a file
 
   processJPG("/logo_240240.jpg");
