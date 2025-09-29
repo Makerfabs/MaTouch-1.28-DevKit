@@ -27,13 +27,13 @@ USB CDC On Boot: Enabled
 #define ENCODER_CLK 48 // CLK
 #define ENCODER_DT 47  // DT
 
-int counter = 0;
-int State;
-int old_State;
-int move_flag = 0;
-int flesh_flag = 1;
+int counter = 0;    //encoder counter
+int State;          //encoder state
+int old_State;      //encoder old state
+int move_flag = 0;  //encoder move flag
+int flesh_flag = 1; //diaplay flesh flag
 
-int x = 0, y = 0;
+int x = 0, y = 0;   //Touch Coordinates
 
 Arduino_ESP32SPI *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO, HSPI, true); // Constructor
 Arduino_GFX *gfx = new Arduino_GC9A01(bus, TFT_RES, 0 /* rotation */, true /* IPS */);
