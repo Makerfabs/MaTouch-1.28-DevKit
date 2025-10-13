@@ -16,10 +16,10 @@ USB CDC On Boot: Enabled
 
 #define TFT_BLK 45
 #define TFT_RES 21
+#define TFT_DC 46
 
 #define SD_CS 43
 #define TFT_CS 1
-#define TFT_DC 46
 #define MOSI 2
 #define MISO 18
 #define SCLK 42
