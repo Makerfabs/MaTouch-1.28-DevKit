@@ -28,8 +28,8 @@ USB CDC On Boot: Enabled
 #define TOUCH_SCL 39
 #define TOUCH_RST 18
 
-char ssid[] = "Makerfabs";
-char pass[] = "20160704";
+char ssid[] = "YOUR SSID";
+char pass[] = "YOUR PIN";
 
 int count =0;
 
