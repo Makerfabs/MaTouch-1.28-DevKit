@@ -30,6 +30,49 @@ Arduino_GFX *gfx = new Arduino_GC9A01(bus, TFT_RES, 0 /* rotation */, true /* IP
 
 WebServer server(80);
 
+void setup()
+{
+  // put your setup code here, to run once:
+    Serial.begin(115200);
+
+    pinMode(LED_PIN, OUTPUT);
+
+    WiFi.begin(ssid, password);
+    Serial.print("Connecting to WiFi");
+    while (WiFi.status() != WL_CONNECTED)
+    {
+      delay(500); Serial.print(".");
+    }
+    Serial.println("\nWiFi connected, IP address: " + WiFi.localIP().toString());
+
+    server.on("/", handleRoot);
+    server.on("/led/on", handleLedOn);
+    server.on("/led/off", handleLedOff);
+    server.begin();
+
+    // Initialize screen
+    pinMode(TFT_BLK, OUTPUT);
+    digitalWrite(TFT_BLK, HIGH);
+    
+    gfx->begin();
+    gfx->fillScreen(WHITE);
+    gfx->setTextSize(2);
+    gfx->setTextColor(BLACK);
+    gfx->setCursor(45, 50);
+    gfx->println(F("WebServer Demo"));
+    gfx->setCursor(20, 95);
+    gfx->println(F("IP Address:"));
+    gfx->setCursor(20, 125);
+    gfx->println(WiFi.localIP().toString());
+    gfx->setCursor(45, 180);
+    gfx->println(F("LED is OFF"));
+}
+
+void loop()
+{
+  server.handleClient();  // Process incoming client requests, handle HTTP requests
+}
+
 void handleRoot()
 {
   bool ledState = digitalRead(LED_PIN);
@@ -92,47 +135,4 @@ void handleLedOff()
   // Redirect back to the main page
   server.sendHeader("Location", "/", true);  // Set HTTP header for redirection to root path, with replace=true to override any existing Location header
   server.send(302, "text/plain", "");  // Send HTTP 302 (Found) status code to perform the redirection, with empty content
-}
-
-void setup()
-{
-  // put your setup code here, to run once:
-    Serial.begin(115200);
-
-    pinMode(LED_PIN, OUTPUT);
-
-    WiFi.begin(ssid, password);
-    Serial.print("Connecting to WiFi");
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      delay(500); Serial.print(".");
-    }
-    Serial.println("\nWiFi connected, IP address: " + WiFi.localIP().toString());
-
-    server.on("/", handleRoot);
-    server.on("/led/on", handleLedOn);
-    server.on("/led/off", handleLedOff);
-    server.begin();
-
-    // Initialize screen
-    pinMode(TFT_BLK, OUTPUT);
-    digitalWrite(TFT_BLK, HIGH);
-    
-    gfx->begin();
-    gfx->fillScreen(WHITE);
-    gfx->setTextSize(2);
-    gfx->setTextColor(BLACK);
-    gfx->setCursor(45, 50);
-    gfx->println(F("WebServer Demo"));
-    gfx->setCursor(20, 95);
-    gfx->println(F("IP Address:"));
-    gfx->setCursor(20, 125);
-    gfx->println(WiFi.localIP().toString());
-    gfx->setCursor(45, 180);
-    gfx->println(F("LED is OFF"));
-}
-
-void loop()
-{
-  server.handleClient();  // Process incoming client requests, handle HTTP requests
 }
