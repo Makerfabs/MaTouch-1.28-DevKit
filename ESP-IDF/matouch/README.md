@@ -1,9 +1,9 @@
 # Example Description
 This project includes example code for some MaTouch products.
-- [**MaTouch 1.28" ToolSet_Controller**](https://www.makerfabs.com/matouch-1-28-toolset-controller.html)
-- [**MaTouch_ESP32-S3 Parallel TFT with Touch 4.3"**](https://www.makerfabs.com/esp32-s3-parallel-tft-with-touch-4-3-inch.html)
+- [**MaTouch 1.28" ToolSet_Controller**](#matouch-128-toolset_controller)
+- [**MaTouch_ESP32-S3 Parallel TFT with Touch 4.3"**](#matouch_esp32-s3-parallel-tft-with-touch-43)
 
-This repository is suitable for the **MaTouch 1.28" ToolSet_Controlle"**.
+This repository is suitable for the [**MaTouch 1.28" ToolSet_Controller**](#matouch-128-toolset_controller).
 
 ## How to use example
 #### MaTouch 1.28" ToolSet_Controller
